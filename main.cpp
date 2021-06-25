@@ -239,6 +239,47 @@ public:
     }
 }snake;
 
+class menu{
+    private:
+        sf::Font font;
+        sf::Text text;
+    public:
+        std::string title;
+        int selectedItem;
+        sf::Vector2f titlePos;
+
+        void draw(sf::RenderWindow *win){
+            text.setCharacterSize(36);
+            text.setString(title);
+            text.setPosition(titlePos);
+            text.setFillColor(sf::Color::White);
+            win->draw(text);
+
+            text.setCharacterSize(24);
+            text.setString("Play");
+            text.setPosition(sf::Vector2f(230, 232));
+            if(selectedItem==0)
+                text.setFillColor(sf::Color::Green);
+            else
+                text.setFillColor(sf::Color::White);
+            win->draw(text);
+
+            text.setCharacterSize(24);
+            text.setString("Exit");
+            text.setPosition(sf::Vector2f(230, 262));
+            if(selectedItem==1)
+                text.setFillColor(sf::Color::Green);
+            else
+                text.setFillColor(sf::Color::White);
+            win->draw(text);
+        }
+        
+        menu():title("Snake"), selectedItem(0), titlePos(sf::Vector2f(208, 172)){
+            font.loadFromFile("font.ttf");
+            text.setFont(font);
+        }
+    }menu;
+
 
 class game {
 private:
@@ -253,6 +294,8 @@ private:
     sf::Texture brickTexture;
     
 public:
+
+    bool isGameOver;
     
     void LoadLevel(std::string levelName) {
         sf::Image level;
@@ -266,6 +309,7 @@ public:
     }
 
     void gameover() {
+        isGameOver=true;
         snake.changesize(4);
         snake.x = 45;
         snake.y = 105;
@@ -274,6 +318,10 @@ public:
             snake.cells.at(i).y=-15;
         }
         std::cout << "gameover";
+
+        menu.title = "Game over";
+        menu.titlePos = sf::Vector2f(168, 172);
+        
     }
 
     void keyboardAction() {
@@ -290,10 +338,22 @@ public:
         else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
             if (snake.direction != up)
                 snake.direction = down;
+            menu.selectedItem = 1;
         }
         else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
             if (snake.direction != down)
                 snake.direction = up;
+            menu.selectedItem=0;
+        }
+
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Enter)){
+            if(menu.selectedItem==1)
+                exit(0);
+            if(menu.selectedItem==0){
+                snake.changesize(4);
+                isGameOver=false;
+            }
+
         }
     }
 
@@ -380,14 +440,16 @@ public:
             }
 
             keyboardAction();
-            draw(&window);
+            if(!isGameOver)
+                draw(&window);
+            else
+            menu.draw(&window);
 
             window.display();
             window.clear();
         }
     }
-
-    game() {
+    game():isGameOver(1) {
         srand(time(0));
         
         font.loadFromFile("font.ttf");
