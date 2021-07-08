@@ -288,11 +288,12 @@ private:
 
     sf::RectangleShape line;
     sf::Text scoreText;
+    sf::Text levelText;
     sf::Font font;
 
     std::vector<brick> bricks;
     sf::Texture brickTexture;
-    
+    int level;
 public:
 
     bool isGameOver;
@@ -300,11 +301,15 @@ public:
     void LoadLevel(std::string levelName) {
         sf::Image level;
         level.loadFromFile(levelName);
+        bricks.clear();
         for (int i = 0; i < 34; i++) {
             for (int j = 0; j < 34; j++) {
                 if (level.getPixel(j, i) == sf::Color::Black)
                     bricks.push_back(brick(j * 15, i * 15));
             }
+        }
+        for (int i = 0; i < bricks.size(); i++) {
+            bricks.at(i).cellSprite.setTexture(brickTexture);
         }
     }
 
@@ -358,26 +363,22 @@ public:
     }
 
     void draw(sf::RenderWindow* win) {
+        
 
         win->draw(background);
         
-
         for (int i = 0; i < bricks.size(); i++) {
             win->draw(bricks.at(i).draw());
         }
-
         
-        scoreText.setString("Score: " + std::to_string(snake.size));
+        scoreText.setString("Score: " + std::to_string(snake.size) + "/"+std::to_string(level*10));
         win->draw(scoreText);
+        levelText.setString("Level: " + std::to_string(level));
+        win->draw(levelText);
 
-        
-
-        
-        
         win->draw(food.draw());
         snake.draw(win);
         win->draw(line);
-        
     }
 
     void gameAction() {
@@ -397,7 +398,7 @@ public:
         }
 
         for (int i = 0; i < bricks.size(); i++) {
-            if (bricks.at(i).check(snake.x, snake.y)) {
+            if (bricks.at(i).check(snake.x, snake.y) &&  !isGameOver) {
                 gameover();
                 std::cout << "brickch\n";
             }
@@ -409,6 +410,13 @@ public:
             }
         }
         snake.refresh();
+
+        //level change
+        if(snake.size >= level*10){ 
+            level++;
+            LoadLevel("levels/level"+std::to_string(level)+".png");
+            snake.changesize(4);
+        }
     }
 
     void run() {
@@ -449,13 +457,16 @@ public:
             window.clear();
         }
     }
-    game():isGameOver(1) {
+    game():isGameOver(1), level(0) {
         srand(time(0));
         
         font.loadFromFile("font.ttf");
         scoreText.setFont(font);
         scoreText.setCharacterSize(24);
         scoreText.setPosition(sf::Vector2f(15, 15));
+        levelText.setFont(font);
+        levelText.setCharacterSize(24);
+        levelText.setPosition(sf::Vector2f(400, 15));
 
         backgroundTexture.loadFromFile("background.png");
         background.setTexture(backgroundTexture);
@@ -467,9 +478,6 @@ public:
         LoadLevel("level.png");
 
         brickTexture.loadFromFile("brick2.png");
-        for (int i = 0; i < bricks.size(); i++) {
-            bricks.at(i).cellSprite.setTexture(brickTexture);
-        }
 
     }
 } game;
